@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"net/http"
-	
+
 	"github.com/Eco-Led/EcoLed-Back_test/forms"
 	"github.com/Eco-Led/EcoLed-Back_test/services"
 	"github.com/Eco-Led/EcoLed-Back_test/utils"
@@ -40,6 +40,7 @@ func (ctr PaylogControllers) CreatePaylog(c *gin.Context) {
 
 }
 
+
 func (ctr PaylogControllers) UpdatePaylog(c *gin.Context) {
 	// Get paylogID from param (util)
 	paylogID, err := utils.GetPaylogID(c)
@@ -73,6 +74,7 @@ func (ctr PaylogControllers) UpdatePaylog(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Update Success"})
 
 }
+
 
 func (ctr PaylogControllers) DeletePaylog(c *gin.Context) {
 	// Get paylogID from param (util)

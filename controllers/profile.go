@@ -41,6 +41,7 @@ func (ctr ProfileControllers) UpdateProfile(c *gin.Context) {
 
 }
 
+
 func (ctr ProfileControllers) GetProfile(c *gin.Context) {
 	// Get userID from token & Chage type to uint (util)
 	userID, err := utils.GetUserIDFromContext(c)

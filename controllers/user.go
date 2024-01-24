@@ -46,6 +46,7 @@ func (ctr UserControllers) Login(c *gin.Context) {
 
 }
 
+
 func (ctr UserControllers) Register(c *gin.Context) {
 	// Bind JSON with forms.RegisterForm (form)
 	var registerForm forms.RegisterForm
@@ -74,6 +75,7 @@ func (ctr UserControllers) Register(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Register Success"})
 
 }
+
 
 func (ctr UserControllers) Logout(c *gin.Context) {
 }

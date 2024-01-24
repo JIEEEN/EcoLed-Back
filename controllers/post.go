@@ -66,6 +66,7 @@ func (ctr PostControllers) CreatePost(c *gin.Context) {
 
 }
 
+
 func (ctr PostControllers) GetUserPosts(c *gin.Context) {
 	// Get userID from token & Chage type to uint (util)
 	userID, err := utils.GetUserIDFromContext(c)
@@ -86,6 +87,7 @@ func (ctr PostControllers) GetUserPosts(c *gin.Context) {
 
 }
 
+
 func (ctr PostControllers) GetOnePost(c *gin.Context) {
 	// Get postID from param & Change type to uint (util)
 	postID, err := utils.GetPostID(c)
@@ -105,6 +107,7 @@ func (ctr PostControllers) GetOnePost(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"post": post})
 
 }
+
 
 // TODO: 제목, 내용은 작성완료해서 DB에 넣었으나, 이미지가 실패했을 때 처리하기.
 func (ctr PostControllers) UpdatePost(c *gin.Context) {
@@ -162,6 +165,7 @@ func (ctr PostControllers) UpdatePost(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"Post Updated successfully with image!": imageURL})
 
 }
+
 
 func (ctr PostControllers) DeletePost(c *gin.Context) {
 	// Get postID from param & Change type to uint (util)

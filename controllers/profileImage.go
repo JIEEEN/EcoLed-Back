@@ -13,7 +13,6 @@ import (
 
 type ProfileImageControllers struct{}
 
-// UploadImage uploads image
 func (ctr ProfileImageControllers) UploadProfileImage(c *gin.Context) {
 	//By form-data type, file is uploaded
 	file, err := c.FormFile("file")
@@ -46,6 +45,7 @@ func (ctr ProfileImageControllers) UploadProfileImage(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"Success to Upload!": imageURL})
 
 }
+
 
 func (ctr ProfileImageControllers) DeleteProfileImage(c *gin.Context) {
 	// Get userID from token & Chage type to uint (util)
