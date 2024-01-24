@@ -8,6 +8,7 @@ import (
 
 	"github.com/Eco-Led/EcoLed-Back_test/forms"
 	"github.com/Eco-Led/EcoLed-Back_test/services"
+	"github.com/Eco-Led/EcoLed-Back_test/utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -27,24 +28,14 @@ func (ctr PostControllers) CreatePost(c *gin.Context) {
 	}
 
 	//Get userID from token & Change type to uint
-	userIDInterface, ok := c.Get("user_id")
-	if !ok {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"error": "failed to get userIDInterface",
-		})
-		return
-	}
-	userIDInt64, ok := userIDInterface.(int64)
-	if !ok {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"error": "failed to convert userID into int64",
-		})
-		return
-	}
-	userID := uint(userIDInt64)
+	userID, err := utils.GetUserIDFromContext(c)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
 
 	//Create (service)
-	err := postService.CreatePost(userID, postForm)
+	err = postService.CreatePost(userID, postForm)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
@@ -86,21 +77,11 @@ func (ctr PostControllers) CreatePost(c *gin.Context) {
 
 func (ctr PostControllers) GetUserPosts(c *gin.Context) {
 	// Get userID from token & Chage type to uint
-	userIDInterface, ok := c.Get("user_id")
-	if !ok {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"error": "failed to get userIDInterface",
-		})
-		return
-	}
-	userIDInt64, ok := userIDInterface.(int64)
-	if !ok {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"error": "failed to convert userID into int64",
-		})
-		return
-	}
-	userID := uint(userIDInt64)
+	userID, err := utils.GetUserIDFromContext(c)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
 
 	//Get User's all posts (service)
 	posts, err := postService.GetUserPosts(userID)
@@ -121,8 +102,8 @@ func (ctr PostControllers) GetUserPosts(c *gin.Context) {
 func (ctr PostControllers) GetOnePost(c *gin.Context) {
 	// Get postID from param
 	postIDstring := c.Param("postID")
-	postIDint64, err1 := strconv.ParseUint(postIDstring, 10, 64)
-	if err1 != nil {
+	postIDint64, err := strconv.ParseUint(postIDstring, 10, 64)
+	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"error": "failed to get postID",
 		})
@@ -157,26 +138,16 @@ func (ctr PostControllers) UpdatePost(c *gin.Context) {
 	}
 
 	//Get userID from token & Change type to uint
-	userIDInterface, ok := c.Get("user_id")
-	if !ok {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"error": "failed to get userIDInterface",
-		})
-		return
-	}
-	userIDInt64, ok := userIDInterface.(int64)
-	if !ok {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"error": "failed to convert userID into int64",
-		})
-		return
-	}
-	userID := uint(userIDInt64)
+	userID, err := utils.GetUserIDFromContext(c)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
 
 	// Get postID from param
 	postIDstring := c.Param("postID")
-	postIDint64, err1 := strconv.ParseUint(postIDstring, 10, 64)
-	if err1 != nil {
+	postIDint64, err := strconv.ParseUint(postIDstring, 10, 64)
+	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"error": "failed to get postID",
 		})
@@ -185,7 +156,7 @@ func (ctr PostControllers) UpdatePost(c *gin.Context) {
 	postID := uint(postIDint64)
 
 	//Update post (in DB)
-	err := postService.UpdatePost(userID, postID, postForm)
+	err = postService.UpdatePost(userID, postID, postForm)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
@@ -228,8 +199,8 @@ func (ctr PostControllers) UpdatePost(c *gin.Context) {
 func (ctr PostControllers) DeletePost(c *gin.Context) {
 	// Get postID from param
 	postIDstring := c.Param("postID")
-	postIDint64, err1 := strconv.ParseUint(postIDstring, 10, 64)
-	if err1 != nil {
+	postIDint64, err := strconv.ParseUint(postIDstring, 10, 64)
+	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"error": "failed to get postID",
 		})
@@ -238,37 +209,27 @@ func (ctr PostControllers) DeletePost(c *gin.Context) {
 	postID := uint(postIDint64)
 
 	// Get userID from token & Chage type to uint
-	userIDInterface, ok := c.Get("user_id")
-	if !ok {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"error": "failed to get userIDInterface",
-		})
-		return
-	}
-	userIDInt64, ok := userIDInterface.(int64)
-	if !ok {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"error": "failed to convert userID into int64",
-		})
-		return
-	}
-	userID := uint(userIDInt64)
+	userID, err := utils.GetUserIDFromContext(c)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
 
 	//Delete image(in google cloud storage & DB)
 	var imageService services.ImageService
-	err2 := imageService.DeleteImage(context.Background(), userID, postID)
-	if err2 != nil {
+	err = imageService.DeleteImage(context.Background(), userID, postID)
+	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"error": err2.Error(),
+			"error": err.Error(),
 		})
 		return
 	}
 
 	//Delete post(in DB)
-	err3 := postService.DeletePost(userID, postID)
-	if err3 != nil {
+	err = postService.DeletePost(userID, postID)
+	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"error": err3.Error(),
+			"error": err.Error(),
 		})
 		return
 	}

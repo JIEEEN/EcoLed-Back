@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/Eco-Led/EcoLed-Back_test/services"
+	"github.com/Eco-Led/EcoLed-Back_test/utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -15,21 +16,11 @@ var accountService = new(services.AccountServices)
 
 func (ctr AccountControllers) GetAccount(c *gin.Context) {
 	// Get userID from token & Chage type to uint
-	userIDInterface, ok := c.Get("user_id")
-	if !ok {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"error": "failed to get userIDInterface",
-		})
-		return
-	}
-	userIDInt64, ok := userIDInterface.(int64)
-	if !ok {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"error": "failed to convert userID into int64",
-		})
-		return
-	}
-	userID := uint(userIDInt64)
+	userID, err := utils.GetUserIDFromContext(c)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
 
 	// Get account (service)
 	account, err := accountService.GetAccount(userID)

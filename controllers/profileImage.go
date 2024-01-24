@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/Eco-Led/EcoLed-Back_test/services"
+	"github.com/Eco-Led/EcoLed-Back_test/utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -29,21 +30,11 @@ func (ctr ProfileImageControllers) UploadProfileImage(c *gin.Context) {
 	defer filecontent.Close()
 
 	// Get userID from token & Chage type to uint
-	userIDInterface, ok := c.Get("user_id")
-	if !ok {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"error": "failed to get userIDInterface",
-		})
-		return
-	}
-	userIDInt64, ok := userIDInterface.(int64)
-	if !ok {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"error": "failed to convert userID into int64",
-		})
-		return
-	}
-	userID := uint(userIDInt64)
+	userID, err := utils.GetUserIDFromContext(c)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
 
 	//Get imageURL
 	var imageService services.ImageService
@@ -64,25 +55,15 @@ func (ctr ProfileImageControllers) UploadProfileImage(c *gin.Context) {
 
 func (ctr ProfileImageControllers) DeleteProfileImage(c *gin.Context) {
 	// Get userID from token & Chage type to uint
-	userIDInterface, ok := c.Get("user_id")
-	if !ok {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"error": "failed to get userIDInterface",
-		})
-		return
-	}
-	userIDInt64, ok := userIDInterface.(int64)
-	if !ok {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"error": "failed to convert userID into int64",
-		})
-		return
-	}
-	userID := uint(userIDInt64)
+	userID, err := utils.GetUserIDFromContext(c)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
 
 	//Delete image(in google cloud storage & DB)
 	var imageService services.ImageService
-	err := imageService.DeleteProfileImage(context.Background(), userID)
+	err = imageService.DeleteProfileImage(context.Background(), userID)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),

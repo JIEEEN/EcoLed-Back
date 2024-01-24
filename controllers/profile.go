@@ -5,6 +5,7 @@ import (
 
 	"github.com/Eco-Led/EcoLed-Back_test/forms"
 	"github.com/Eco-Led/EcoLed-Back_test/services"
+	"github.com/Eco-Led/EcoLed-Back_test/utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -24,24 +25,14 @@ func (ctr ProfileControllers) UpdateProfile(c *gin.Context) {
 	}
 
 	// Get userID from token & Chage type to uint
-	userIDInterface, ok := c.Get("user_id")
-	if !ok {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"error": "failed to get userIDInterface",
-		})
-		return
-	}
-	userIDInt64, ok := userIDInterface.(int64)
-	if !ok {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"error": "failed to convert userID into int64",
-		})
-		return
-	}
-	userID := uint(userIDInt64)
+	userID, err := utils.GetUserIDFromContext(c)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
 
 	// Update (service)
-	err := profileService.UpdateProfile(userID, profileForm)
+	err = profileService.UpdateProfile(userID, profileForm)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
@@ -58,21 +49,11 @@ func (ctr ProfileControllers) UpdateProfile(c *gin.Context) {
 
 func (ctr ProfileControllers) GetProfile(c *gin.Context) {
 	// Get userID from token & Chage type to uint
-	userIDInterface, ok := c.Get("user_id")
-	if !ok {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"error": "failed to get userIDInterface",
-		})
-		return
-	}
-	userIDInt64, ok := userIDInterface.(int64)
-	if !ok {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"error": "failed to convert userID into int64",
-		})
-		return
-	}
-	userID := uint(userIDInt64)
+	userID, err := utils.GetUserIDFromContext(c)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
 
 	// Get profile (service)
 	profile, err := profileService.GetProfile(userID)
