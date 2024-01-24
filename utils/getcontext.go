@@ -5,7 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-
+// GetUserIDFromContext gets userID from context
 func GetUserIDFromContext(c *gin.Context) (uint, error) {
 	userIDInterface, ok := c.Get("user_id")
 	if !ok {

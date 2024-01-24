@@ -15,58 +15,48 @@ type ProfileControllers struct{}
 var profileService = new(services.ProfileServices)
 
 func (ctr ProfileControllers) UpdateProfile(c *gin.Context) {
-	// Bind JSON
+	// Bind JSON to profileForm (form)
 	var profileForm forms.ProfileForm
 	if err := c.ShouldBindJSON(&profileForm); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	// Get userID from token & Chage type to uint
+	// Get userID from token & Chage type to uint (util)
 	userID, err := utils.GetUserIDFromContext(c)
-    if err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-        return
-    }
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
-	// Update (service)
+	// Update profile (service)
 	err = profileService.UpdateProfile(userID, profileForm)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	// Response
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Profile updated successfully",
-	})
+	c.JSON(http.StatusOK, gin.H{"message": "Profile updated successfully"})
 
 }
 
 func (ctr ProfileControllers) GetProfile(c *gin.Context) {
-	// Get userID from token & Chage type to uint
+	// Get userID from token & Chage type to uint (util)
 	userID, err := utils.GetUserIDFromContext(c)
-    if err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-        return
-    }
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
 	// Get profile (service)
 	profile, err := profileService.GetProfile(userID)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	// Response
-	c.JSON(http.StatusOK, gin.H{
-		"profile": profile,
-	})
+	c.JSON(http.StatusOK, gin.H{"profile": profile})
 
 }
