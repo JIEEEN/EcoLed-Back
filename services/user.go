@@ -67,20 +67,23 @@ func (svc UserServices) Login(loginForm forms.LoginForm) (user forms.UserReturnF
 
 }
 
-func (svc UserServices) Register(registerForm forms.RegisterForm) (err error) {
+func (svc UserServices) Register(registerForm forms.RegisterForm) (error) {
 	//call by value (not call by reference)
 	var userModel = models.Users{}
 	var profileModel = models.Profiles{}
 
+	//Start transaction
+	tx := initializers.DB.Begin()
+
 	// Check whether the email is unique
-	initializers.DB.First(&userModel, "email=?", registerForm.Email)
+	tx.First(&userModel, "email=?", registerForm.Email)
 	if userModel.ID != 0 {
 		err := errors.New("email already exists")
 		return err
 	}
 
 	//Check whether the nickname is unique
-	initializers.DB.First(&profileModel, "nickname=?", registerForm.Nickname)
+	tx.First(&profileModel, "nickname=?", registerForm.Nickname)
 	if profileModel.ID != 0 {
 		err := errors.New("nickname already exists")
 		return err
@@ -98,33 +101,36 @@ func (svc UserServices) Register(registerForm forms.RegisterForm) (err error) {
 		Email:    registerForm.Email,
 		Password: string(hashedPassword),
 	}
-	result := initializers.DB.Create(&user)
+	result := tx.Create(&user)
 	if result.Error != nil {
+		tx.Rollback()
 		err := errors.New("failed to create user")
 		return err
 	}
 
 	// Create profile
-	result = initializers.DB.Create(&models.Profiles{
+	result = tx.Create(&models.Profiles{
 		Nickname: registerForm.Nickname,
 		User_id:  user.ID,
 	})
 	if result.Error != nil {
+		tx.Rollback()
 		err := errors.New("failed to create profile")
 		return err
 	}
 
 	// Create account
-	result = initializers.DB.Create(&models.Accounts{
+	result = tx.Create(&models.Accounts{
 		Name:    registerForm.Accountname,
 		User_id: user.ID,
 	})
 	if result.Error != nil {
+		tx.Rollback()
 		err := errors.New("failed to create account")
 		return err
 	}
 
-	return nil
+	return tx.Commit().Error
 
 }
 

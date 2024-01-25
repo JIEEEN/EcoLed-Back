@@ -8,6 +8,7 @@ import (
 	"github.com/Eco-Led/EcoLed-Back_test/forms"
 	"github.com/Eco-Led/EcoLed-Back_test/services"
 	"github.com/Eco-Led/EcoLed-Back_test/utils"
+	"github.com/Eco-Led/EcoLed-Back_test/initializers"
 
 	"github.com/gin-gonic/gin"
 )
@@ -16,7 +17,6 @@ type PostControllers struct{}
 
 var postService = new(services.PostService)
 
-// TODO: 제목, 내용은 작성완료해서 DB에 넣었으나, 이미지가 실패했을 때 처리하기.
 func (ctr PostControllers) CreatePost(c *gin.Context) {
 	//Get body by PostForm (form)
 	title := c.PostForm("title")
@@ -33,9 +33,18 @@ func (ctr PostControllers) CreatePost(c *gin.Context) {
 		return
 	}
 
+	//Strat transaction
+	tx := initializers.DB.Begin()
+	defer func() {
+        if r := recover(); r != nil {
+            tx.Rollback()
+        }
+    }()
+
 	//Create (service)
-	err = postService.CreatePost(userID, postForm)
+	err = postService.CreatePost(tx, userID, postForm)
 	if err != nil {
+		tx.Rollback()
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -45,6 +54,7 @@ func (ctr PostControllers) CreatePost(c *gin.Context) {
 	//By form-data type, file is uploaded 
 	file, err := c.FormFile("file")
 	if err != nil {
+		tx.Rollback()
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -55,28 +65,30 @@ func (ctr PostControllers) CreatePost(c *gin.Context) {
 	defer filecontent.Close()
 
 	//Get imageURL (in Service)
-	imageURL, err := imageService.UploadPostImage(context.Background(), filecontent, userID, filename)
+	imageURL, err := imageService.UploadPostImage(tx, context.Background(), filecontent, userID, filename)
 	if err != nil {
+		tx.Rollback()
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
+	tx.Commit()
 
 	//Return imageURL
 	c.JSON(http.StatusOK, gin.H{"Post created successfully with image!": imageURL})
 
 }
 
-
-func (ctr PostControllers) GetUserPosts(c *gin.Context) {
-	// Get userID from token & Chage type to uint (util)
-	userID, err := utils.GetUserIDFromContext(c)
+func (ctr PostControllers) GetUserPost(c *gin.Context) {
+	// Get userID from param & Change type to uint (util)
+	userID, err := utils.GetUserID(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	//Get User's all posts (service)
-	posts, err := postService.GetUserPosts(userID)
+	posts, err := postService.GetUserPost(userID)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -88,7 +100,28 @@ func (ctr PostControllers) GetUserPosts(c *gin.Context) {
 }
 
 
-func (ctr PostControllers) GetOnePost(c *gin.Context) {
+func (ctr PostControllers) GetMyPost(c *gin.Context) {
+	// Get userID from token & Chage type to uint (util)
+	userID, err := utils.GetUserIDFromContext(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	//Get My all posts (service)
+	posts, err := postService.GetUserPost(userID)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	//Return posts
+	c.JSON(http.StatusOK, gin.H{"posts": posts})
+
+}
+
+
+func (ctr PostControllers) GetPost(c *gin.Context) {
 	// Get postID from param & Change type to uint (util)
 	postID, err := utils.GetPostID(c)
 	if err != nil {
@@ -97,7 +130,7 @@ func (ctr PostControllers) GetOnePost(c *gin.Context) {
 	}
 
 	//Get One Post (service)
-	post, err := postService.GetOnePost(postID)
+	post, err := postService.GetPost(postID)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -109,7 +142,6 @@ func (ctr PostControllers) GetOnePost(c *gin.Context) {
 }
 
 
-// TODO: 제목, 내용은 작성완료해서 DB에 넣었으나, 이미지가 실패했을 때 처리하기.
 func (ctr PostControllers) UpdatePost(c *gin.Context) {
 	//Get body by PostForm (form)
 	title := c.PostForm("title")
@@ -133,9 +165,13 @@ func (ctr PostControllers) UpdatePost(c *gin.Context) {
 		return
 	}
 
+	//Start transaction
+	tx := initializers.DB.Begin()
+
 	//Update post (service)
-	err = postService.UpdatePost(userID, postID, postForm)
+	err = postService.UpdatePost(tx, userID, postID, postForm)
 	if err != nil {
+		tx.Rollback()
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -145,6 +181,7 @@ func (ctr PostControllers) UpdatePost(c *gin.Context) {
 	//By form-data type, file is uploaded
 	file, err := c.FormFile("file")
 	if err != nil {
+		tx.Rollback()
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -155,11 +192,14 @@ func (ctr PostControllers) UpdatePost(c *gin.Context) {
 	defer filecontent.Close()
 
 	//Get imageURL
-	imageURL, err := imageService.UploadPostImage(context.Background(), filecontent, userID, filename)
+	imageURL, err := imageService.UploadPostImage(tx, context.Background(), filecontent, userID, filename)
 	if err != nil {
+		tx.Rollback()
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
+	tx.Commit()
 
 	//Return imageURL
 	c.JSON(http.StatusOK, gin.H{"Post Updated successfully with image!": imageURL})
@@ -184,7 +224,7 @@ func (ctr PostControllers) DeletePost(c *gin.Context) {
 
 	//Delete image(in google cloud storage & DB) (service)
 	var imageService services.ImageService
-	err = imageService.DeleteImage(context.Background(), userID, postID)
+	err = imageService.DeletePostImage(context.Background(), userID, postID)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

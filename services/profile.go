@@ -37,3 +37,15 @@ func (svc ProfileServices) GetProfile(userID uint) (profile models.Profiles, err
 	return profile, nil
 
 }
+
+func (svc ProfileServices) GetProfileByNickname(nickname string) (profile models.Profiles, err error) {
+	// Get profile
+	result := initializers.DB.Where("nickname=?", nickname).First(&profile)
+	if result.Error != nil {
+		err := errors.New("failed to get profile")
+		return profile, err
+	}
+
+	return profile, nil
+
+}

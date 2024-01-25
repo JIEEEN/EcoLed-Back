@@ -6,13 +6,14 @@ import (
 	"github.com/Eco-Led/EcoLed-Back_test/forms"
 	"github.com/Eco-Led/EcoLed-Back_test/initializers"
 	"github.com/Eco-Led/EcoLed-Back_test/models"
+	"gorm.io/gorm"
 )
 
 type PostService struct{}
 
-func (srv PostService) CreatePost(userID uint, postForm forms.PostForm) error {
+func (srv PostService) CreatePost(tx *gorm.DB, userID uint, postForm forms.PostForm) error {
 	// Create post
-	result := initializers.DB.Create(&models.Posts{
+	result := tx.Create(&models.Posts{
 		Title:   postForm.Title,
 		Body:    postForm.Body,
 		User_id: userID,
@@ -26,7 +27,7 @@ func (srv PostService) CreatePost(userID uint, postForm forms.PostForm) error {
 
 }
 
-func (srv PostService) GetUserPosts(userID uint) ([]models.Posts, error) {
+func (srv PostService) GetUserPost(userID uint) ([]models.Posts, error) {
 	//Get all posts
 	var posts []models.Posts
 	result := initializers.DB.Where("user_id =?", userID).
@@ -45,7 +46,7 @@ func (srv PostService) GetUserPosts(userID uint) ([]models.Posts, error) {
 
 }
 
-func (srv PostService) GetOnePost(postID uint) (models.Posts, error) {
+func (srv PostService) GetPost(postID uint) (models.Posts, error) {
 	//Get one post
 	var post models.Posts
 	result := initializers.DB.
@@ -64,11 +65,11 @@ func (srv PostService) GetOnePost(postID uint) (models.Posts, error) {
 
 }
 
-func (srv PostService) UpdatePost(userID uint, postID uint, postForm forms.PostForm) error {
+func (srv PostService) UpdatePost(tx *gorm.DB, userID uint, postID uint, postForm forms.PostForm) error {
 	//Check whether post is
 	var post models.Posts
-	result1 := initializers.DB.First(&post, postID)
-	if result1.Error != nil {
+	result := tx.First(&post, postID)
+	if result.Error != nil {
 		err := errors.New("there are no post that match postID")
 		return err
 	}
@@ -82,8 +83,8 @@ func (srv PostService) UpdatePost(userID uint, postID uint, postForm forms.PostF
 	//Update post
 	post.Title = postForm.Title
 	post.Body = postForm.Body
-	result2 := initializers.DB.Save(&post)
-	if result2.Error != nil {
+	result = tx.Save(&post)
+	if result.Error != nil {
 		err := errors.New("failed to update post")
 		return err
 	}
@@ -95,8 +96,8 @@ func (srv PostService) UpdatePost(userID uint, postID uint, postForm forms.PostF
 func (srv PostService) DeletePost(userID uint, postID uint) error {
 	//Check whether post is
 	var post models.Posts
-	result1 := initializers.DB.First(&post, postID)
-	if result1.Error != nil {
+	result := initializers.DB.First(&post, postID)
+	if result.Error != nil {
 		err := errors.New("there are no post that match postID")
 		return err
 	}
@@ -108,8 +109,8 @@ func (srv PostService) DeletePost(userID uint, postID uint) error {
 	}
 
 	//Delete post
-	result2 := initializers.DB.Delete(&post, postID)
-	if result2.Error != nil {
+	result = initializers.DB.Delete(&post, postID)
+	if result.Error != nil {
 		err := errors.New("failed to delete post")
 		return err
 	}

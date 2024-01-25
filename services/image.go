@@ -14,6 +14,8 @@ import (
 
 	"cloud.google.com/go/storage"
 	"google.golang.org/api/option"
+
+	"gorm.io/gorm"
 )
 
 type ImageService struct{}
@@ -59,7 +61,7 @@ func (srv ImageService) UploadProfileImage(ctx context.Context, file io.Reader, 
 
 }
 
-func (srv ImageService) UploadPostImage(ctx context.Context, file io.Reader, userID uint, fileName string) (imageURL string, err error) {
+func (srv ImageService) UploadPostImage(tx *gorm.DB, ctx context.Context, file io.Reader, userID uint, fileName string) (imageURL string, err error) {
 	//Get filename (in Service)
 	uniqueFilename := time.Now().Format("20060102150405") + "_" + fileName
 
@@ -88,14 +90,14 @@ func (srv ImageService) UploadPostImage(ctx context.Context, file io.Reader, use
 
 	//Save imageURL to DB
 	var post models.Posts
-	result1 := initializers.DB.Where("user_id = ?", userID).Order("updated_at DESC").First(&post)
-	if result1.Error != nil {
+	result := tx.Where("user_id = ?", userID).Order("updated_at DESC").First(&post)
+	if result.Error != nil {
 		err = errors.New("failed to get last uploaded post")
 		return imageURL, err
 	}
 	post.Image = imageURL
-	result2 := initializers.DB.Save(&post)
-	if result2.Error != nil {
+	result = tx.Save(&post)
+	if result.Error != nil {
 		err = errors.New("failed to upload image in db")
 		return imageURL, err
 	}
@@ -143,7 +145,7 @@ func (svc ImageService) DeleteProfileImage(ctx context.Context, userID uint) (er
 
 }
 
-func (svc ImageService) DeleteImage(ctx context.Context, userID uint, postID uint) (err error) {
+func (svc ImageService) DeletePostImage(ctx context.Context, userID uint, postID uint) (err error) {
 	//Delete image on Google Cloud Storage
 	client, err := storage.NewClient(ctx, option.WithCredentialsFile(os.Getenv("GOOGLE_APPLICATION_CREDENTIALS1")))
 	if err != nil {

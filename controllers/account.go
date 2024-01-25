@@ -13,6 +13,10 @@ type AccountControllers struct{}
 
 var accountService = new(services.AccountServices)
 
+// Account is created by register
+// Account is updated by paylog
+
+
 func (ctr AccountControllers) GetAccount(c *gin.Context) {
 	// Get userID from token & Chage type to uint (util)
 	userID, err := utils.GetUserIDFromContext(c)
@@ -30,22 +34,5 @@ func (ctr AccountControllers) GetAccount(c *gin.Context) {
 
 	// Return account
 	c.JSON(http.StatusOK, gin.H{"account": account})
-
-	// Get page from query (util)
-	page, err := utils.GetPage(c)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	// Get paylogs (service)
-	paylogs, err := paylogService.GetPaylogs(account.ID, page)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	// Return paylogs
-	c.JSON(http.StatusOK, gin.H{"paylogs": paylogs})
 
 }

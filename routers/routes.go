@@ -24,7 +24,9 @@ func AuthRoutes(router *gin.Engine, apiVersion string) {
 func ProfileRoutes(router *gin.Engine, apiVersion string) {
 	router.Use(middlewares.AuthToken())
 	router.PUT(apiVersion+"/profile", profileController.UpdateProfile)
-	router.GET(apiVersion+"/profile", profileController.GetProfile)
+	router.GET(apiVersion+"/profile", profileController.GetMyProfile)
+	router.GET(apiVersion+"/profile/:userID", profileController.GetUserProfile)
+	router.GET(apiVersion+"/profile/search", profileController.GetProfileByNickname)
 }
 
 func ProfileImageRoutes(router *gin.Engine, apiVersion string) {
@@ -41,6 +43,8 @@ func AccountRoutes(router *gin.Engine, apiVersion string) {
 func PaylogRoutes(router *gin.Engine, apiVersion string) {
 	router.Use(middlewares.AuthToken())
 	router.POST(apiVersion+"/paylog", paylogController.CreatePaylog)
+	router.GET(apiVersion+"/paylog", paylogController.GetPaylogs)
+	router.GET(apiVersion+"/paylog/:paylogID", paylogController.GetPaylog)
 	router.PUT(apiVersion+"/paylog/:paylogID", paylogController.UpdatePaylog)
 	router.DELETE(apiVersion+"/paylog/:paylogID", paylogController.DeletePaylog)
 }
@@ -52,8 +56,9 @@ func RankingRoutes(router *gin.Engine, apiVersion string) {
 func PostRoutes(router *gin.Engine, apiVersion string) {
 	router.Use(middlewares.AuthToken())
 	router.POST(apiVersion+"/post", postController.CreatePost)
-	router.GET(apiVersion+"/post", postController.GetUserPosts)
-	router.GET(apiVersion+"/post/:postID", postController.GetOnePost)
+	router.GET(apiVersion+"/post", postController.GetMyPost)
+	router.GET(apiVersion+"/post/:postID", postController.GetPost)
+	router.GET(apiVersion+"/posts/:userID", postController.GetUserPost)
 	router.PUT(apiVersion+"/post/:postID", postController.UpdatePost)
 	router.DELETE(apiVersion+"/post/:postID", postController.DeletePost)
 }

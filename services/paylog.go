@@ -11,6 +11,7 @@ import (
 
 type PaylogServices struct{}
 
+
 func (svc PaylogServices) CreatePaylog(userID uint, paylog forms.PaylogForm) (err error) {
 	// Get account
 	var account models.Accounts
@@ -47,6 +48,61 @@ func (svc PaylogServices) CreatePaylog(userID uint, paylog forms.PaylogForm) (er
 	}
 
 	return nil
+
+}
+
+
+func (svc PaylogServices) GetPaylog(userID uint, paylogID uint) (paylog models.Paylogs, err error) {
+	// Get account
+	var account models.Accounts
+	result := initializers.DB.First(&account, "user_id=?", userID)
+	if result.Error != nil {
+		err := errors.New("failed to get account")
+		return paylog, err
+	}
+
+	// Get paylog
+	result = initializers.DB.First(&paylog, "id=?", paylogID)
+	if result.Error != nil {
+		err := errors.New("failed to get paylog")
+		return paylog, err
+	}
+
+	//Check if paylog is owned by user
+	if paylog.Account_id != account.ID {
+		err := errors.New("paylog is not owned by user")
+		return paylog, err
+	}
+
+	return paylog, nil
+
+}
+
+
+func (svc PaylogServices) GetPaylogs(accountID uint, page int) (paylogs []models.Paylogs, err error) {
+	// Setting page
+	endDate := time.Now().AddDate(0, 0, -page*31)
+	startDate := endDate.AddDate(0, 0, -31)
+	endDateStr := endDate.Format("200601021504")
+	startDateStr := startDate.Format("200601021504")
+
+	// Get paylogs
+	result := initializers.DB.Where("account_id=?", accountID).
+		Where("deleted_at IS NULL").
+		Where("CONCAT(Date, Time) BETWEEN ? AND ?", startDateStr, endDateStr).
+		Order("CONCAT(Date, Time) DESC").
+		Find(&paylogs)
+
+	if result.Error != nil {
+		err := errors.New("failed to get paylogs")
+		return paylogs, err
+	}
+	if result.RowsAffected == 0 {
+		err := errors.New("no paylogs found")
+		return paylogs, err
+	}
+
+	return paylogs, nil
 
 }
 
@@ -106,33 +162,6 @@ func (svc PaylogServices) UpdatePaylog(userID uint, paylogID uint, paylog forms.
 	}
 
 	return nil
-
-}
-
-func (svc PaylogServices) GetPaylogs(accountID uint, page int) (paylogs []models.Paylogs, err error) {
-	// Setting page
-	endDate := time.Now().AddDate(0, 0, -page*31)
-	startDate := endDate.AddDate(0, 0, -31)
-	endDateStr := endDate.Format("200601021504")
-	startDateStr := startDate.Format("200601021504")
-
-	// Get paylogs
-	result := initializers.DB.Where("account_id=?", accountID).
-		Where("deleted_at IS NULL").
-		Where("CONCAT(Date, Time) BETWEEN ? AND ?", startDateStr, endDateStr).
-		Order("CONCAT(Date, Time) DESC").
-		Find(&paylogs)
-
-	if result.Error != nil {
-		err := errors.New("failed to get paylogs")
-		return paylogs, err
-	}
-	if result.RowsAffected == 0 {
-		err := errors.New("no paylogs found")
-		return paylogs, err
-	}
-
-	return paylogs, nil
 
 }
 
