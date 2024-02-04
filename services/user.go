@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"time"
 
 	"github.com/Eco-Led/EcoLed-Back_test/forms"
 	"github.com/Eco-Led/EcoLed-Back_test/initializers"
@@ -140,6 +141,70 @@ func (svc UserServices) Logout(accessToken string, refreshToken string) (err err
 
 	// Delete token
 	_, err = tokenService.DeleteToken(accessToken, refreshToken)
+	if err != nil {
+		return err
+	}
+
+	// Return error
+	return nil
+}
+
+// for verifying email error
+var ErrEmailNotFound = errors.New("email not found")
+
+func (svc UserServices) FindEmail(email string) error {
+	//call by value (not call by reference)
+	var userModel = models.Users{}
+
+	// Check whether the email exists
+	initializers.DB.First(&userModel, "email=?", email)
+	if userModel.ID != 0 {
+		return nil
+	}
+
+	// Return error
+	return ErrEmailNotFound
+}
+
+func (svc UserServices) SaveVerificationCode(email string, code string) error {
+	// Save verification code
+	err := initializers.Redis.Set("authCode:"+email, code, 5*time.Minute).Err()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (svc UserServices) VerifyCode(email string, code string) error {
+	// Get verification code
+	savedCode, err := initializers.Redis.Get("authCode:" + email).Result()
+	if err != nil {
+		return err
+	}
+
+	// Compare verification code
+	if savedCode != code {
+		return errors.New("invalid verification code")
+	}
+
+	// Return error
+	return nil
+}
+
+func (svc UserServices) UpdatePassword(email string, password string) error {
+	//call by value (not call by reference)
+	var userModel = models.Users{}
+
+	// Hash password
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		err := errors.New("failed to hash password")
+		return err
+	}
+
+	// Update password
+	err = initializers.DB.Model(&userModel).Where("email=?", email).Update("password", hashedPassword).Error
 	if err != nil {
 		return err
 	}

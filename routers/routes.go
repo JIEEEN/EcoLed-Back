@@ -19,6 +19,10 @@ func UserRoutes(router *gin.Engine, apiVersion string) {
 	router.POST(apiVersion+"/login", userController.Login)
 	router.POST(apiVersion+"/register", userController.Register)
 	router.POST(apiVersion+"/logout", userController.Logout)
+	router.POST(apiVersion+"/findemail", userController.FindEmail)
+	router.POST(apiVersion+"/findpassword", userController.FindPassword)
+	router.POST(apiVersion+"/verifycode", userController.VerifyCode)
+	router.PUT(apiVersion+"/password", userController.UpdatePassword)
 }
 
 func ProfileRoutes(router *gin.Engine, apiVersion string) {

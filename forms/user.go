@@ -29,6 +29,15 @@ type UserReturnForm struct {
     CreatedAt string 
 }
 
+type FindUserInfoForm struct {
+    Email string `form:"email" json:"email" binding:"required,email"`
+}
+
+type VerifyCodeForm struct {
+    Email string `form:"email" json:"email" binding:"required,email"`
+    Code string `form:"code" json:"code" binding:"required,min=6,max=6"`
+}
+
 
 // Custom validation error messages for RegisterForm
 func (f UserForm) Register(form RegisterForm) string {
@@ -97,6 +106,63 @@ func (f UserForm) Login(form LoginForm) string {
     return "Something went wrong, please try again later"
 }
 
+func (f UserForm) FindUserInfo(form FindUserInfoForm) string {
+    validate := validator.New()
+    err := validate.Struct(form)
+    
+    if err == nil {
+        return ""
+    }
+
+    switch err.(type) {
+    case validator.ValidationErrors:
+
+        if _, ok := err.(*json.UnmarshalTypeError); ok {
+            return "Something went wrong, please try again later"
+        }
+
+        for _, err := range err.(validator.ValidationErrors) {
+            switch err.Field() {
+            case "Email":
+                return f.Email(err.Tag())
+            }
+        }
+    default:
+        return "Invalid request"
+    }
+
+    return "Something went wrong, please try again later"
+}
+
+func (f UserForm) VerifyCode(form VerifyCodeForm) string {
+    validate := validator.New()
+    err := validate.Struct(form)
+    if err == nil {
+        return ""
+    }
+
+    switch err.(type) {
+    case validator.ValidationErrors:
+
+        if _, ok := err.(*json.UnmarshalTypeError); ok {
+            return "Something went wrong, please try again later"
+        }
+
+        for _, err := range err.(validator.ValidationErrors) {
+            switch err.Field() {
+            case "Email":
+                return f.Email(err.Tag())
+            case "Code":
+                return "Invalid code"
+            }
+        }
+    default:
+        return "Invalid request"
+    }
+
+    return "Something went wrong, please try again later"
+}
+
 // Custom validation error messages for each field
 func (f UserForm) Email(tag string) string {
     switch tag {
@@ -145,5 +211,18 @@ func (f UserForm) Accountname(tag string) string {
         return "Account name is too long"
     default:
         return "Invalid account name"
+    }
+}
+
+func (f UserForm) Code(tag string) string {
+    switch tag {
+    case "required":
+        return "Code is required"
+    case "min":
+        return "Code must be 6 digits"
+    case "max":
+        return "Code must be 6 digits"
+    default:
+        return "Invalid code"
     }
 }
