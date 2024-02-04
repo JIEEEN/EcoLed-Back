@@ -46,7 +46,6 @@ func (ctr UserControllers) Login(c *gin.Context) {
 
 }
 
-
 func (ctr UserControllers) Register(c *gin.Context) {
 	// Bind JSON with forms.RegisterForm (form)
 	var registerForm forms.RegisterForm
@@ -76,6 +75,38 @@ func (ctr UserControllers) Register(c *gin.Context) {
 
 }
 
-
 func (ctr UserControllers) Logout(c *gin.Context) {
+	// Get accesstoken from header
+	accessToken := c.Request.Header.Get("Authorization")
+	if accessToken == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "token not found"})
+		return
+	}
+
+	// Get refresh token from body
+	refreshToken := forms.RefreshToken{}
+	if err := c.ShouldBindJSON(&refreshToken); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Validate with forms.UserForm (form)
+	authForm := forms.AuthForm{}
+	if validationError := authForm.RefreshToken(refreshToken); validationError != "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"error": validationError,
+		})
+		return
+	}
+
+	// Logout(service)
+	err := userService.Logout(accessToken, refreshToken.RefreshToken)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Response with message
+	c.JSON(http.StatusOK, gin.H{"message": "Logout Success"})
+
 }

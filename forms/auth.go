@@ -16,7 +16,21 @@ type AccessDetails struct {
 	UserID     int64
 }
 
+type AuthForm struct {}
+
 type Token struct {
 	AccessToken  string `json:"access_token"`
 	RefreshToken string `json:"refresh_token"`
+}
+
+type RefreshToken struct {
+	// AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+}
+
+func (f AuthForm) RefreshToken(refreshToken RefreshToken) string {
+	if refreshToken.RefreshToken == "" {
+		return "Refresh token is required"
+	}
+	return ""
 }

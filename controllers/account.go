@@ -16,7 +16,6 @@ var accountService = new(services.AccountServices)
 // Account is created by register
 // Account is updated by paylog
 
-
 func (ctr AccountControllers) GetAccount(c *gin.Context) {
 	// Get userID from token & Chage type to uint (util)
 	userID, err := utils.GetUserIDFromContext(c)

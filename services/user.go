@@ -67,7 +67,7 @@ func (svc UserServices) Login(loginForm forms.LoginForm) (user forms.UserReturnF
 
 }
 
-func (svc UserServices) Register(registerForm forms.RegisterForm) (error) {
+func (svc UserServices) Register(registerForm forms.RegisterForm) error {
 	//call by value (not call by reference)
 	var userModel = models.Users{}
 	var profileModel = models.Profiles{}
@@ -134,6 +134,16 @@ func (svc UserServices) Register(registerForm forms.RegisterForm) (error) {
 
 }
 
-func (svc UserServices) Logout() {
+func (svc UserServices) Logout(accessToken string, refreshToken string) (err error) {
+	//call by reference
+	var tokenService = new(TokenServices)
 
+	// Delete token
+	_, err = tokenService.DeleteToken(accessToken, refreshToken)
+	if err != nil {
+		return err
+	}
+
+	// Return error
+	return nil
 }

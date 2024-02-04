@@ -89,3 +89,67 @@ func (svc TokenServices) ExtractTokenID(tokenString string) (int64, error) {
 
 	return int64(userIDFloat), nil
 }
+
+func (svc TokenServices) DeleteToken(accessTokenString string, RefreshTokenString string) (int64, error) {
+	// Parse AccessToken
+	claims := jwt.MapClaims{}
+	_, err := jwt.ParseWithClaims(accessTokenString, claims, func(token *jwt.Token) (interface{}, error) {
+		return []byte(os.Getenv("ACCESS_SECRET")), nil
+	})
+
+	// Check token
+	if err != nil {
+		return 0, err
+	}
+
+	// Get accessUUID from token
+	accessUUIDValue, ok := claims["access_uuid"]
+	if !ok {
+		return 0, errors.New("access_uuid not found in token")
+	}
+
+	// Change type to string
+	accessUUIDString, ok := accessUUIDValue.(string)
+	if !ok {
+		return 0, errors.New("access_uuid is not a string")
+	}
+
+	// Delete Accesstoken
+	deleted, err := initializers.Redis.Del(accessUUIDString).Result()
+	if err != nil {
+		return 0, err
+	}
+
+	// Parse RefreshToken
+	claims = jwt.MapClaims{}
+	_, err = jwt.ParseWithClaims(RefreshTokenString, claims, func(token *jwt.Token) (interface{}, error) {
+		return []byte(os.Getenv("REFRESH_SECRET")), nil
+	})
+
+	// Check token
+	if err != nil {
+		return 0, err
+	}
+
+	// Get refreshUUID from token
+	refreshUUIDValue, ok := claims["refresh_uuid"]
+	if !ok {
+		return 0, errors.New("refresh_uuid not found in token")
+	}
+
+	// Change type to string
+	refreshUUIDString, ok := refreshUUIDValue.(string)
+	if !ok {
+		return 0, errors.New("refresh_uuid is not a string")
+	}
+
+	// Delete Refreshtoken
+	deleted, err = initializers.Redis.Del(refreshUUIDString).Result()
+	if err != nil {
+		return 0, err
+	}
+
+
+	// Return deleted
+	return deleted, nil
+}

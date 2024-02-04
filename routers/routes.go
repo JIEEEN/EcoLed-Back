@@ -15,10 +15,10 @@ var paylogController = new(controllers.PaylogControllers)
 var rankingController = new(controllers.RankingControllers)
 var postController = new(controllers.PostControllers)
 
-func AuthRoutes(router *gin.Engine, apiVersion string) {
+func UserRoutes(router *gin.Engine, apiVersion string) {
 	router.POST(apiVersion+"/login", userController.Login)
 	router.POST(apiVersion+"/register", userController.Register)
-	router.GET(apiVersion+"/logout", userController.Logout)
+	router.POST(apiVersion+"/logout", userController.Logout)
 }
 
 func ProfileRoutes(router *gin.Engine, apiVersion string) {
@@ -69,7 +69,7 @@ func RouterSetupV1() *gin.Engine {
 	apiVersion := "/api/v1"
 	r.Group(apiVersion)
 	{
-		AuthRoutes(r, apiVersion)
+		UserRoutes(r, apiVersion)
 		ProfileRoutes(r, apiVersion)
 		ProfileImageRoutes(r, apiVersion)
 		AccountRoutes(r, apiVersion)
