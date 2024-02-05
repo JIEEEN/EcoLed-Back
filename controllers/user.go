@@ -180,6 +180,7 @@ func (ctr UserControllers) FindPassword(c *gin.Context) {
 		return
 	}
 
+	// SaveVerificationCode(service)
 	err = userService.SaveVerificationCode(findUserInfoForm.Email, verificationCode)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})

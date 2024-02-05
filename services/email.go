@@ -36,10 +36,10 @@ func (srv EmailServices) SendVerifyingEmail(subject string, templatePath string,
 
 	//Send email
 	auth := smtp.PlainAuth(
-		"",
-		"hoon30512329@gmail.com",
-		"uzxczxjovdckoiys",
-		"smtp.gmail.com",
+		"", 
+		"hoon30512329@gmail.com", //email sender
+		"uzxczxjovdckoiys", // email app password
+		"smtp.gmail.com", // smtp server
 	)
 	headers := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n"
 	msg := "Subject: " + subject + "\n" + headers + "\n\n" + body.String()
