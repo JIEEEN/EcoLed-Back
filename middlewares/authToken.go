@@ -16,7 +16,7 @@ func AuthToken() gin.HandlerFunc {
 		// Check token
 		if tokenString == "" {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-				"error": "Unauthorized1",
+				"error": "Unauthorized123",
 			})
 			return
 		}

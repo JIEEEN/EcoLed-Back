@@ -24,12 +24,14 @@ func (svc OauthServices) GenerateStateString() (string, error) {
 }
 
 func (svc OauthServices) GetLoginURL(state string) (url string) {
-	url = forms.GoogleOauthConfig.AuthCodeURL(state)
+	GoogleOauthConfig := forms.GetGoogleOauthConfig()
+	url = GoogleOauthConfig.AuthCodeURL(state)
 	return url
 }
 
 func (svc OauthServices) GetOauthToken(code string) (*oauth2.Token, error) {
-	token, err := forms.GoogleOauthConfig.Exchange(context.Background(), code)
+	GoogleOauthConfig := forms.GetGoogleOauthConfig()
+	token, err := GoogleOauthConfig.Exchange(context.Background(), code)
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +39,8 @@ func (svc OauthServices) GetOauthToken(code string) (*oauth2.Token, error) {
 }
 
 func (svc OauthServices) GetOauthUser(token *oauth2.Token) (forms.OauthUser, error) {
-	client := forms.GoogleOauthConfig.Client(context.Background(), token)
+	GoogleOauthConfig := forms.GetGoogleOauthConfig()
+	client := GoogleOauthConfig.Client(context.Background(), token)
 	response, err := client.Get("https://www.googleapis.com/oauth2/v2/userinfo")
 	if err != nil {
 		return forms.OauthUser{}, err
@@ -52,13 +55,13 @@ func (svc OauthServices) GetOauthUser(token *oauth2.Token) (forms.OauthUser, err
 	return userInfo, nil
 }
 
-func (svc OauthServices) FindUserExists(userInfo forms.OauthUser) (bool) {
+func (svc OauthServices) FindUserExists(userInfo forms.OauthUser) bool {
 	var userModel = models.Users{}
 	initializers.DB.First(&userModel, "email=?", userInfo.Email)
 
 	if userModel.ID != 0 {
 		return true
-	}else{
+	} else {
 		return false
 	}
 }

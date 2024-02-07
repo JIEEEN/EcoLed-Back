@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"encoding/json"
+	"log"
 	"net/http"
 
 	"github.com/gin-contrib/sessions"
@@ -70,21 +72,34 @@ func (ctr OauthControllers) GoogleCallback(c *gin.Context) {
 	// Check whether the user exists (service)
 	userExists := oauthService.FindUserExists(userInfo)
 
-	if !userExists{ // if user does not exist
+	if !userExists { // if user does not exist
 		// Save oauthToken and userInfo in session
-		session.Set("oauthToken", oauthToken)
-		session.Set("userInfo", userInfo)
-		err = session.Save()
+		tokenJson, err := json.Marshal(oauthToken)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save session"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to serialize oauthToken"})
 			return
 		}
-		
-		// Redirect to register page
-		c.Redirect(http.StatusFound, "api/v1/oauth/google/register")
-        return
+		session.Set("oauthToken", string(tokenJson))
 
-	} else{ // if user exists
+		userInfoJson, err := json.Marshal(userInfo)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to serialize userInfo"})
+			return
+		}
+		session.Set("userInfo", string(userInfoJson))
+
+		err = session.Save()
+		if err != nil {
+			log.Printf("Session save error: %v", err) // 로깅 추가
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save session1"})
+			return
+		}
+
+		// Redirect to register page
+		c.JSON(http.StatusOK, gin.H{"message": "Additional information required","redirectURL": "/oauth/google/register"})
+		return
+
+	} else { // if user exists
 
 		// Save user in DB (service)
 		user, token, err := oauthService.SaveOauthUser(oauthToken, userInfo)
@@ -97,12 +112,12 @@ func (ctr OauthControllers) GoogleCallback(c *gin.Context) {
 		session.Delete("oauthState")
 		err = session.Save()
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save session"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save session2"})
 			return
 		}
 
 		// Return the user and token
-		c.JSON(http.StatusOK, gin.H{"user": user, "oauthToken": oauthToken, "token": token})
+		c.JSON(http.StatusOK, gin.H{"message":"Logged in Success","user": user, "oauthToken": oauthToken, "token": token})
 	}
 
 }
@@ -110,8 +125,33 @@ func (ctr OauthControllers) GoogleCallback(c *gin.Context) {
 func (ctr OauthControllers) GoogleRegister(c *gin.Context) {
 	// Get oauthToken and userInfo from session
 	session := sessions.Default(c)
-	oauthToken := session.Get("oauthToken").(*oauth2.Token)
-	userInfo := session.Get("userInfo").(forms.OauthUser)
+
+	tokenJson, ok := session.Get("oauthToken").(string)
+	if !ok || tokenJson == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "oauthToken not found in session"})
+		return
+	}
+
+
+	var oauthToken *oauth2.Token
+	err := json.Unmarshal([]byte(tokenJson), &oauthToken)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to deserialize oauthToken"})
+		return
+	}
+
+	userInfoJson, ok := session.Get("userInfo").(string)
+	if !ok || userInfoJson == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "userInfo not found in session"})
+		return
+	}
+
+	var userInfo forms.OauthUser
+	err = json.Unmarshal([]byte(userInfoJson), &userInfo)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to deserialize userInfo"})
+		return
+	}
 
 	// Get OauthRegisterForm (form)
 	var registerForm forms.OauthRegisterForm
