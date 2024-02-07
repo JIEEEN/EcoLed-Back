@@ -1,6 +1,9 @@
 package routers
 
 import (
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/cookie"
+	
 	"github.com/Eco-Led/EcoLed-Back_test/controllers"
 	"github.com/Eco-Led/EcoLed-Back_test/middlewares"
 
@@ -8,12 +11,14 @@ import (
 )
 
 var userController = new(controllers.UserControllers)
+var oauthController = new(controllers.OauthControllers)
 var profileController = new(controllers.ProfileControllers)
 var profileimageController = new(controllers.ProfileImageControllers)
 var accountController = new(controllers.AccountControllers)
 var paylogController = new(controllers.PaylogControllers)
 var rankingController = new(controllers.RankingControllers)
 var postController = new(controllers.PostControllers)
+
 
 func UserRoutes(router *gin.Engine, apiVersion string) {
 	router.POST(apiVersion+"/login", userController.Login)
@@ -23,6 +28,16 @@ func UserRoutes(router *gin.Engine, apiVersion string) {
 	router.POST(apiVersion+"/password", userController.FindPassword)
 	router.POST(apiVersion+"/code", userController.VerifyCode)
 	router.PUT(apiVersion+"/password", userController.UpdatePassword)
+}
+
+func OauthRoutes(router *gin.Engine, apiVersion string) {
+	// 세션 스토어 설정
+	store := cookie.NewStore([]byte("secret"))
+	router.Use(sessions.Sessions("oauth_session", store))
+
+	router.GET(apiVersion+"/oauth/google", oauthController.GoogleLogin)
+	router.GET(apiVersion+"/oauth/google/callback", oauthController.GoogleCallback)
+	router.POST(apiVersion+"/oauth/google/register", oauthController.GoogleRegister)
 }
 
 func ProfileRoutes(router *gin.Engine, apiVersion string) {
@@ -70,10 +85,13 @@ func PostRoutes(router *gin.Engine, apiVersion string) {
 func RouterSetupV1() *gin.Engine {
 	r := gin.Default()
 
+	
+
 	apiVersion := "/api/v1"
 	r.Group(apiVersion)
 	{
 		UserRoutes(r, apiVersion)
+		OauthRoutes(r, apiVersion)
 		ProfileRoutes(r, apiVersion)
 		ProfileImageRoutes(r, apiVersion)
 		AccountRoutes(r, apiVersion)

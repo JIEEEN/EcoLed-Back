@@ -6,8 +6,13 @@ import (
 
 type Users struct {
 	gorm.Model
-	Email    string `gorm:"unique"`
-	Password string
+	Email    		string `gorm:"unique"`
+	Password 		string
+	Oauth_provider  string
+	Oauth_id		string
+
+	// To OAuth: OneToOne mapping
+	OAuth OAuth `gorm:"foreignKey:User_id"`
 
 	// To Profiles: OneToOne mapping
 	Profiles Profiles `gorm:"foreignkey:User_id"`

@@ -49,6 +49,7 @@ func SyncDB() {
 	logger.Debug.Println("Synchronization to Database")
 
 	DB.AutoMigrate(&models.Users{})
+	DB.AutoMigrate(&models.OAuth{})
 	DB.AutoMigrate(&models.Profiles{})
 	DB.AutoMigrate(&models.Accounts{})
 	DB.AutoMigrate(&models.Paylogs{})
