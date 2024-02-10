@@ -11,6 +11,7 @@ import (
 )
 
 var userController = new(controllers.UserControllers)
+var AuthController = new(controllers.AuthControllers)
 var oauthController = new(controllers.OauthControllers)
 var profileController = new(controllers.ProfileControllers)
 var profileimageController = new(controllers.ProfileImageControllers)
@@ -28,6 +29,10 @@ func UserRoutes(router *gin.Engine, apiVersion string) {
 	router.POST(apiVersion+"/password", userController.FindPassword)
 	router.POST(apiVersion+"/code", userController.VerifyCode)
 	router.PUT(apiVersion+"/password", userController.UpdatePassword)
+}
+
+func AuthRoutes(router *gin.Engine, apiVersion string) {
+	router.POST(apiVersion+"/refresh", AuthController.RefreshToken)
 }
 
 func OauthRoutes(router *gin.Engine, apiVersion string) {
@@ -91,6 +96,7 @@ func RouterSetupV1() *gin.Engine {
 	r.Group(apiVersion)
 	{
 		UserRoutes(r, apiVersion)
+		AuthRoutes(r, apiVersion)
 		OauthRoutes(r, apiVersion)
 		ProfileRoutes(r, apiVersion)
 		ProfileImageRoutes(r, apiVersion)
