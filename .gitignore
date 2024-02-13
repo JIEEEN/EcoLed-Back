@@ -22,5 +22,5 @@ go.work
 
 
 # EDIT
-.env_dev
 .env
+.env_deploy
