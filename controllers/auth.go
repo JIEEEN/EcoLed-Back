@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"net/http"
-	"strconv"
 	"time"
 	"os"
 
@@ -42,7 +41,7 @@ func(ctr AuthControllers) RefreshToken(c *gin.Context) {
 	}
 
 	// Create new Access Token (service)
-	userID, err := strconv.ParseInt(claims.Subject, 10, 64)
+	userID, err := tokenService.ExtractTokenID(refreshtoken)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting user ID from token"})
 		return
