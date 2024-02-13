@@ -52,6 +52,14 @@ func ConnectDB() {
 		logger.Error.Println("failed to create database")
 		os.Exit(-1)
 	}
+
+	dsn = fmt.Sprintf(os.Getenv("DB_URL_SPRINT"), dbName)
+	DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
+
+	if err != nil {
+		logger.Error.Println("failed to connect to DB")
+		os.Exit(-1)
+	}
 }
 
 func SyncDB() {
