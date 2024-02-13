@@ -1,6 +1,7 @@
 package initializers
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/Eco-Led/EcoLed-Back_test/logger"
@@ -41,6 +42,14 @@ func ConnectDB() {
 
 	if err != nil {
 		logger.Error.Println("failed to connect to DB")
+		os.Exit(-1)
+	}
+
+	dbName := os.Getenv("DB_NAME")
+	res := DB.Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s", dbName))
+
+	if res.Error != nil {
+		logger.Error.Println("failed to create database")
 		os.Exit(-1)
 	}
 }
