@@ -33,7 +33,7 @@ func (srv ImageService) UploadProfileImage(ctx context.Context, file io.Reader, 
 	defer client.Close()
 
 	// Upload an object with storage.Writer.
-	bucketName := "ecoled_test_profile_images"
+	bucketName := os.Getenv("GOOGLE_PROFILE_BUCKET_NAME")
 	wc := client.Bucket(bucketName).Object(uniqueFilename).NewWriter(ctx)
 	if _, err := io.Copy(wc, file); err != nil {
 		err = errors.New("failed to upload image1")
@@ -74,7 +74,7 @@ func (srv ImageService) UploadPostImage(tx *gorm.DB, ctx context.Context, file i
 	defer client.Close()
 
 	// Upload an object with storage.Writer.
-	bucketName := "ecoled_test_post_images"
+	bucketName := os.Getenv("GOOGLE_POST_BUCKET_NAME")
 	wc := client.Bucket(bucketName).Object(uniqueFilename).NewWriter(ctx)
 	if _, err := io.Copy(wc, file); err != nil {
 		err = errors.New("failed to upload image1")
@@ -127,7 +127,7 @@ func (svc ImageService) DeleteProfileImage(ctx context.Context, userID uint) (er
 	fileName := path.Base(fileNameStr)
 
 	//Delete an object with storage.Writer.
-	bucketName := "ecoled_test_profile_images"
+	bucketName := os.Getenv("GOOGLE_PROFILE_BUCKET_NAME")
 	if err := client.Bucket(bucketName).Object(fileName).Delete(ctx); err != nil {
 		err = errors.New("failed to delete image")
 		return err
@@ -165,7 +165,7 @@ func (svc ImageService) DeletePostImage(ctx context.Context, userID uint, postID
 	fileName := path.Base(fileNameStr)
 
 	//Delete an object with storage.Writer.
-	bucketName := "ecoled_test_post_images"
+	bucketName := os.Getenv("GOOGLE_POST_BUCKET_NAME")
 	if err := client.Bucket(bucketName).Object(fileName).Delete(ctx); err != nil {
 		err = errors.New("failed to delete image")
 		return err
