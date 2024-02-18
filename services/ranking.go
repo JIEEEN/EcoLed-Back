@@ -41,6 +41,7 @@ func (svc RankingServices) GetRanking() (ranking []forms.RankingReturnForm, err 
 		ranking = append(ranking, forms.RankingReturnForm{
 			Nickname:      profile.Nickname,
 			Age:           int64(profile.Age),
+			Profile_image:  profile.Profile_image,
 			TotalEcoscore: account.Total_ecoscore,
 			Rank:          int64(currentRank),
 		})
