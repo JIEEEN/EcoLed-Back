@@ -7,6 +7,7 @@ import (
 	"github.com/Eco-Led/EcoLed-Back_test/initializers"
 	"github.com/Eco-Led/EcoLed-Back_test/models"
 	"gorm.io/gorm"
+	"log"
 )
 
 type PostService struct{}
@@ -19,6 +20,7 @@ func (srv PostService) CreatePost(tx *gorm.DB, userID uint, postForm forms.PostF
 		User_id: userID,
 	})
 	if result.Error != nil {
+		log.Println(result.Error)
 		err := errors.New("failed to create post")
 		return err
 	}

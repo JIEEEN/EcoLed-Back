@@ -36,7 +36,7 @@ func (ctr OauthControllers) GoogleLogin(c *gin.Context) {
 
 	// Redirect to consent page (service)
 	url := oauthService.GetLoginURL(state)
-	c.Redirect(http.StatusTemporaryRedirect, url)
+	c.JSON(http.StatusOK, gin.H{"redirectURL": url})
 
 }
 
