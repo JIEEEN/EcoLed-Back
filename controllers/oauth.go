@@ -37,7 +37,6 @@ func (ctr OauthControllers) GoogleLogin(c *gin.Context) {
 	// Redirect to consent page (service)
 	url := oauthService.GetLoginURL(state)
 	c.JSON(http.StatusOK, gin.H{"redirectURL": url})
-
 }
 
 func (ctr OauthControllers) GoogleCallback(c *gin.Context) {
@@ -96,7 +95,7 @@ func (ctr OauthControllers) GoogleCallback(c *gin.Context) {
 		}
 
 		// Redirect to register page
-		c.JSON(http.StatusOK, gin.H{"message": "Additional information required","redirectURL": "/oauth/google/register"})
+		c.JSON(http.StatusOK, gin.H{"message": "Additional information required", "redirectURL": "/oauth/google/register"})
 		return
 
 	} else { // if user exists
@@ -117,7 +116,7 @@ func (ctr OauthControllers) GoogleCallback(c *gin.Context) {
 		}
 
 		// Return the user and token
-		c.JSON(http.StatusOK, gin.H{"message":"Logged in Success","user": user, "oauthToken": oauthToken, "token": token})
+		c.JSON(http.StatusOK, gin.H{"message": "Logged in Success", "user": user, "oauthToken": oauthToken, "token": token})
 	}
 
 }
@@ -131,7 +130,6 @@ func (ctr OauthControllers) GoogleRegister(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "oauthToken not found in session"})
 		return
 	}
-
 
 	var oauthToken *oauth2.Token
 	err := json.Unmarshal([]byte(tokenJson), &oauthToken)
