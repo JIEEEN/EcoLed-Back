@@ -2,29 +2,29 @@ package forms
 
 import "github.com/go-playground/validator/v10"
 
-//Paylog Service's input value (from body)
+// Paylog Service's input value (from body)
 type PaylogForm struct {
-	Date    	string 	`form:"date" json:"date" binding:"required,datetime=2006-01-02"`
-	Time    	string 	`form:"time" json:"time" binding:"required,datetime=15:04"`
-	Content 	string  `form:"content" json:"content" binding:"required,min=1,max=100"`
-	Cost    	int64 	`form:"cost" json:"cost" binding:"required"`
-	Name		string 	`form:"name" json:"name" binding:"required,min=1,max=30"`
-	Place		string	`form:"place" json:"place" binding:"required,min=1,max=30"`
-	Material	string 	`form:"material" json:"material" binding:"required,oneof=plastic can metal paper food glass vinyl styrofoam weee trash n_a"`
-	Ecoscore 	float64 `form:"ecoscore" json:"ecoscore" binding:"required,min=-10,max=10"`
+	Date     string  `form:"date" json:"date" binding:"required,datetime=2006-01-02"`
+	Time     string  `form:"time" json:"time" binding:"required,datetime=15:04"`
+	Content  string  `form:"content" json:"content" binding:"required,min=1,max=100"`
+	Cost     int64   `form:"cost" json:"cost" binding:"required"`
+	Name     string  `form:"name" json:"name" binding:"required,min=1,max=30"`
+	Place    string  `form:"place" json:"place" binding:"required,min=1,max=30"`
+	Material string  `form:"material" json:"material" binding:"required,oneof=plastic can metal paper food glass vinyl styrofoam weee trash n_a"`
+	Ecoscore float64 `form:"ecoscore" json:"ecoscore" binding:"required,min=-1000,max=1000"`
 }
 
 func (f PaylogForm) Validate() string {
-    validate := validator.New()
-    err := validate.Struct(f)
+	validate := validator.New()
+	err := validate.Struct(f)
 
-    if err != nil {
-        for _, err := range err.(validator.ValidationErrors) {
-            switch err.Field() {
-            case "Date":
-                return f.DateError(err.Tag())
-            case "Time":
-                return f.TimeError(err.Tag())
+	if err != nil {
+		for _, err := range err.(validator.ValidationErrors) {
+			switch err.Field() {
+			case "Date":
+				return f.DateError(err.Tag())
+			case "Time":
+				return f.TimeError(err.Tag())
 			case "Content":
 				return f.ContentError(err.Tag())
 			case "Cost":
@@ -37,10 +37,10 @@ func (f PaylogForm) Validate() string {
 				return f.MaterialError(err.Tag())
 			case "Ecoscore":
 				return f.EcoscoreError(err.Tag())
-            }
-        }
-    }
-    return ""
+			}
+		}
+	}
+	return ""
 }
 
 // Custom validation error messages for Date field
@@ -144,4 +144,3 @@ func (f PaylogForm) EcoscoreError(tag string) string {
 		return "Invalid ecoscore"
 	}
 }
-
