@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -16,9 +17,11 @@ import (
 type OauthControllers struct{}
 
 var oauthService = new(services.OauthServices)
+var redirectURI string
 
 func (ctr OauthControllers) GoogleLogin(c *gin.Context) {
 	// Generate state string (service)
+	redirectURI = c.Query("redirect-uri")
 	state, err := oauthService.GenerateStateString()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate state"})
@@ -101,7 +104,7 @@ func (ctr OauthControllers) GoogleCallback(c *gin.Context) {
 	} else { // if user exists
 
 		// Save user in DB (service)
-		user, token, err := oauthService.SaveOauthUser(oauthToken, userInfo)
+		_, token, err := oauthService.SaveOauthUser(oauthToken, userInfo)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -116,9 +119,9 @@ func (ctr OauthControllers) GoogleCallback(c *gin.Context) {
 		}
 
 		// Return the user and token
-		c.JSON(http.StatusOK, gin.H{"message": "Logged in Success", "user": user, "oauthToken": oauthToken, "token": token})
+		url := fmt.Sprintf("%s#token=%s", redirectURI, token)
+		c.Redirect(http.StatusTemporaryRedirect, url)
 	}
-
 }
 
 func (ctr OauthControllers) GoogleRegister(c *gin.Context) {
